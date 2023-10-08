@@ -33,9 +33,11 @@ For detailed installation instructions, configuration options, and usage example
 
 ### Using `apt` (Debian/Ubuntu):
 
-```bash
+```
+bash
 sudo apt update
-sudo apt install logwatch```
+sudo apt install logwatch
+```
 
 Using dnf (Fedora/RHEL):
 
