@@ -39,7 +39,9 @@ sudo apt install logwatch```
 
 Using dnf (Fedora/RHEL):
 
-```sudo dnf install logwatch```
+```
+sudo dnf install logwatch
+```
 
 Usage
 
