@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 
     FILE *fd;
     int ret;
-    if((fd = fopen(LOGWATCH_CONF, "r")) < 0)
+    if((fd = fopen(LOGWATCH_CONF, "r")) == NULL)
         err(EXIT_FAILURE, "open(\"%s\")", LOGWATCH_CONF);
 
     while((nread = getline(&line, &len, fd)) != -1) {
