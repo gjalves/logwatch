@@ -50,13 +50,18 @@ void logwatch(const char *match, const char *pattern, const char *action)
         if(pattern) {
             const void *message;
             size_t length;
+            char *strmessage;
 
             if((ret = sd_journal_get_data(journal, "MESSAGE", &message, &length)) < 0) {
                 errx(EXIT_FAILURE, "sd_journal_get_data");
                 continue;
             }
-            if(regexec(&regex, message, 0, NULL, 0) == REG_NOMATCH)
+            strmessage = strndup(message, length);
+            if(regexec(&regex, strmessage, 0, NULL, 0) == REG_NOMATCH) {
+                free(strmessage);
                 continue;
+            }
+            free(strmessage);
         }
 
         const void *data;
