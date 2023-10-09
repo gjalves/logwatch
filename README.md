@@ -4,8 +4,8 @@ LogWatch: Real-time log file monitoring with syslog and systemd support, automat
 # LogWatch
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/yourusername/LogWatch.svg)](https://github.com/yourusername/LogWatch/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/yourusername/LogWatch.svg)](https://github.com/yourusername/LogWatch/issues)
+[![GitHub stars](https://img.shields.io/github/stars/gjalves/logwatch.svg)](https://github.com/gjalves/logwatch/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/gjalves/logwatch.svg)](https://github.com/gjalves/logwatch/issues)
 
 LogWatch is a powerful and flexible log file monitoring tool designed to keep a vigilant eye on your system's log files. It is capable of monitoring both syslog and systemd logs, allowing you to automate responses to specific log patterns and events.
 
