@@ -32,8 +32,6 @@ void logwatch(const char *match, const char *pattern, const char *action)
             errx(EXIT_FAILURE, "Invalid expression %s\n", pattern);
     }
 
-    if(fork()) return;
-
     ret = sd_journal_open_namespace(&journal, NULL, 0);
     sd_journal_seek_tail(journal);
 
@@ -118,10 +116,14 @@ int main(int argc, char *argv[])
         ret = sscanf(line, "%s %s %s", watch, pattern, action);
         if(ret != 3) continue;
         if(watch[0] == '#') continue;
-        logwatch(watch, pattern, action);
+
+        if(fork() == 0) {
+            free(line);
+            fclose(fd);
+            logwatch(watch, pattern, action);
+        }
     }
     free(line);
-
     fclose(fd);
 
     while(!request_exit) pause();
