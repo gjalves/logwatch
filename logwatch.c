@@ -73,6 +73,8 @@ void logwatch(const char *match, const char *pattern, const char *action)
 //        sd_journal_get_realtime_usec(journal, (uint64_t *)&realtime);
 //        sec = realtime.tv_sec;
         sd_journal_restart_data(journal);
+
+        // Need to retrieve data from systemd before the fork
         char *envp[256];
         int i = 0;
         while(sd_journal_enumerate_data(journal, &data, &length) > 0) {
@@ -85,6 +87,10 @@ void logwatch(const char *match, const char *pattern, const char *action)
             execle(action, action, NULL, envp);
             exit(EXIT_FAILURE);
         }
+
+        // Deallocate memory
+        for(i = 0; envp[i]; i++) free(envp[i]);
+
         waitpid(pid, &ret, 0);
     }
     if(pattern) regfree(&regex);
