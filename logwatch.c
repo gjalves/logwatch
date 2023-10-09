@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <regex.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -12,7 +13,7 @@
 
 #define LOGWATCH_CONF "/etc/logwatch.conf"
 
-static sd_journal *journal;
+// Handle SIGINT and SIGTERM requests
 static int request_exit = 0;
 
 void sigint(int signum)
@@ -20,9 +21,16 @@ void sigint(int signum)
     request_exit = 1;
 }
 
-void logwatch(char *match, const char *action)
+void logwatch(const char *match, const char *pattern, const char *action)
 {
+    sd_journal *journal;
+    regex_t regex;
     int ret;
+
+    if(pattern) {
+        if(regcomp(&regex, pattern, 0))
+            errx(EXIT_FAILURE, "Invalid expression %s\n", pattern);
+    }
 
     if(fork()) return;
 
@@ -39,6 +47,18 @@ void logwatch(char *match, const char *action)
         if(ret == 0) {
             usleep(100000);
             continue;
+        }
+
+        if(pattern) {
+            const void *message;
+            size_t length;
+
+            if((ret = sd_journal_get_data(journal, "MESSAGE", &message, &length)) < 0) {
+                errx(EXIT_FAILURE, "sd_journal_get_data");
+                continue;
+            }
+            if(regexec(&regex, message, 0, NULL, 0) == REG_NOMATCH)
+                continue;
         }
 
         const void *data;
@@ -67,6 +87,7 @@ void logwatch(char *match, const char *action)
         }
         waitpid(pid, &ret, 0);
     }
+    if(pattern) regfree(&regex);
     sd_journal_close(journal);
     exit(EXIT_SUCCESS);
 }
@@ -74,10 +95,12 @@ void logwatch(char *match, const char *action)
 int main(int argc, char *argv[])
 {
     signal(SIGINT, sigint);
+    signal(SIGTERM, sigint);
     char *line = malloc(BUFSIZ);
     size_t len = BUFSIZ;
     ssize_t nread;
     char watch[BUFSIZ];
+    char pattern[BUFSIZ];
     char action[BUFSIZ];
 
     FILE *fd;
@@ -86,10 +109,10 @@ int main(int argc, char *argv[])
         err(EXIT_FAILURE, "open(\"%s\")", LOGWATCH_CONF);
 
     while((nread = getline(&line, &len, fd)) != -1) {
-        ret = sscanf(line, "%s %s", watch, action);
-        if(ret != 2) continue;
+        ret = sscanf(line, "%s %s %s", watch, pattern, action);
+        if(ret != 3) continue;
         if(watch[0] == '#') continue;
-        logwatch(watch, action);
+        logwatch(watch, pattern, action);
     }
     free(line);
 
