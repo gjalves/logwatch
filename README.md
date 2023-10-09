@@ -39,17 +39,19 @@ sudo apt update
 sudo apt install logwatch
 ```
 
-Using dnf (Fedora/RHEL):
+### Using `dnf` (Fedora/RHEL):
 
 ```
 sudo dnf install logwatch
 ```
 
-Usage
+## Usage
 
 To start monitoring your log files with LogWatch, simply run:
 
-logwatch start
+```
+logwatch
+```
 
 For more advanced usage and configuration options, please refer to the documentation.
 
