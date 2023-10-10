@@ -21,7 +21,7 @@ void sigint(int signum)
     request_exit = 1;
 }
 
-void logwatch(const char *match, const char *pattern, const char *action)
+void logwatch(const char *pattern, const char *action)
 {
     sd_journal *journal;
     regex_t regex;
@@ -34,9 +34,6 @@ void logwatch(const char *match, const char *pattern, const char *action)
 
     ret = sd_journal_open_namespace(&journal, NULL, 0);
     sd_journal_seek_tail(journal);
-
-    if((ret = sd_journal_add_match(journal, match, 0)) < 0)
-        errx(EXIT_FAILURE, "sd_journal_add_match");
 
     while(!request_exit) {
         if((ret = sd_journal_next(journal)) < 0)
@@ -64,20 +61,10 @@ void logwatch(const char *match, const char *pattern, const char *action)
             free(strmessage);
         }
 
+        // Need to retrieve data from systemd before the fork
         const void *data;
         size_t length;
-//        struct timespec realtime;
-//        struct tm timestamp;
-//        time_t sec;
-//        if((ret = sd_journal_get_data(journal, "MESSAGE", &data, &length)) < 0) {
-//            errx(EXIT_FAILURE, "sd_journal_get_data");
-//            continue;
-//        }
-//        sd_journal_get_realtime_usec(journal, (uint64_t *)&realtime);
-//        sec = realtime.tv_sec;
         sd_journal_restart_data(journal);
-
-        // Need to retrieve data from systemd before the fork
         char *envp[256];
         int i = 0;
         while(sd_journal_enumerate_data(journal, &data, &length) > 0) {
@@ -108,7 +95,6 @@ int main(int argc, char *argv[])
     char *line = malloc(BUFSIZ);
     size_t len = BUFSIZ;
     ssize_t nread;
-    char watch[BUFSIZ];
     char pattern[BUFSIZ];
     char action[BUFSIZ];
 
@@ -118,16 +104,16 @@ int main(int argc, char *argv[])
         err(EXIT_FAILURE, "open(\"%s\")", LOGWATCH_CONF);
 
     while((nread = getline(&line, &len, fd)) != -1) {
-        ret = sscanf(line, "%s %s %s", watch, pattern, action);
-        if(ret != 3) continue;
-        if(watch[0] == '#') continue;
+        ret = sscanf(line, "%s %s", pattern, action);
+        if(ret != 2) continue;
+        if(pattern[0] == '#') continue;
 
         if(fork() == 0) {
             free(line);
             fclose(fd);
 
             sprintf(argv[0], "%-32s", "logwatch [systemd]");
-            logwatch(watch, pattern, action);
+            logwatch(pattern, action);
         }
     }
     free(line);
