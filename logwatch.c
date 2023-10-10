@@ -40,7 +40,7 @@ void logwatch(const char *pattern, const char *action)
             errx(EXIT_FAILURE, "sd_journal_next");
 
         if(ret == 0) {
-            usleep(100000);
+            sd_journal_wait(journal, (uint64_t) -1);
             continue;
         }
 
