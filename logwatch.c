@@ -125,12 +125,16 @@ int main(int argc, char *argv[])
         if(fork() == 0) {
             free(line);
             fclose(fd);
+
+            sprintf(argv[0], "%-32s", "logwatch [systemd]");
             logwatch(watch, pattern, action);
         }
     }
     free(line);
     fclose(fd);
 
+    sprintf(argv[0], "%-32s", "logwatch [master]");
+    daemon(1, 1);
     while(!request_exit) pause();
 
     exit(EXIT_SUCCESS);
