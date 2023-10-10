@@ -1,0 +1,10 @@
+[Unit]
+Description=Real-time log file monitoring
+After=network.target auditd.service
+
+[Service]
+ExecStart=/usr/bin/logwatch
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
